@@ -53,7 +53,7 @@ interface ExampleFlatNode {
   styleUrls: ['./layout-parking.component.scss']
 })
 export class LayoutParkingComponent implements OnInit, AfterViewInit {
-
+  public cursonTrueFalse:boolean = false;
   myControl = new FormControl('');
   myForm!: FormGroup;
 
@@ -377,24 +377,27 @@ annotations: any = [
 
   }
 
-  cursonTrueFalse:boolean = false;
+ 
 
   enableMouseControl(){
   
     if(this.cursonTrueFalse ==  false){
     
-     // console.log('disable work');
-      this.cursonTrueFalse = true
-  
-     // this.controls.enabled = false;
-      // this.controls.enableRotate = false;
+    
+      this.cursonTrueFalse = true;
+      console.log('disable work',this.cursonTrueFalse);
+     // this.controls.enablePan = false;
+     //this.controls.enabled = false;
+    // this.controls.enableRotate = false;
       // this.controls.update();
   
     }else{
      
   
-     // console.log('enable work');
+   
       this.cursonTrueFalse = false;
+      console.log('enable work',this.cursonTrueFalse);
+     // this.controls.enablePan = true;
      // this.controls.enabled = true;
       // this.controls.enableRotate = true;
       // this.controls.update();
@@ -549,6 +552,10 @@ annotations: any = [
   searchName = '';
   ngAfterViewInit() {
 
+    // if(this.cursonTrueFalse == false){
+      
+    // }
+
     this.init();//mouse click move
 
 
@@ -571,52 +578,113 @@ annotations: any = [
    // this.camera.position.set(-4, 5, 5);
 
   }
+// fitCameraToCenteredObject = (
+//     camera: THREE.OrthographicCamera,
+//     object: any
+//   ) => {
+//     const boundingBox = new THREE.Box3();
   
+//     boundingBox.setFromObject(object);
+  
+//     const center = boundingBox.getCenter(new THREE.Vector3());
+//     const size = boundingBox.getSize(new THREE.Vector3());
+//     const maxSize = Math.max(size.x, size.y, size.z);
+//     let newPositionCamera = new THREE.Vector3(maxSize, maxSize, maxSize);
+//     camera.zoom = 1;
+//     camera.left = -(2 * maxSize);
+//     camera.bottom = -(2 * maxSize);
+//     camera.top = 2 * maxSize;
+//     camera.right = 2 * maxSize;
+//     camera.near = -maxSize * 4;
+//     camera.far = maxSize * 4;
+//     // camera;
+//     camera.position.set(
+//       newPositionCamera.x,
+//       newPositionCamera.y,
+//       newPositionCamera.z
+//     );
+//     camera.lookAt(0, 0, 0);
+//     camera.updateProjectionMatrix();
+//   };
 
+  zoomCameraToSelection(boundingBox: THREE.Box3) {
   
+    const box = new THREE.Box3();
+    var fitOffset = 1.2;
+    
+    // for( const object of selection ) box.expandByObject( object );
+    
+    // const size = box.getSize( new THREE.Vector3() );
+    // const center = box.getCenter( new THREE.Vector3() );
+    const center = boundingBox.getCenter(new THREE.Vector3());
+    const size = boundingBox.getSize(new THREE.Vector3());
+    
+    const maxSize = Math.max( size.x, size.y, size.z );
+    const fitHeightDistance = maxSize / ( 2 * Math.atan( Math.PI * this.camera.fov / 360 ) );
+    const fitWidthDistance = fitHeightDistance / this.camera.aspect;
+    const distance = fitOffset * Math.max( fitHeightDistance, fitWidthDistance );
+    
+    const direction = this.controls.target.clone()
+      .sub( this.camera.position )
+      .normalize()
+      .multiplyScalar( distance );
+  
+    this.controls.maxDistance = distance * 10;
+    this.controls.target.copy( center );
+    
+    this.camera.near = distance / 100;
+    this.camera.far = distance * 100;
+    this.camera.updateProjectionMatrix();
+  
+    this.camera.position.copy( this.controls.target ).sub(direction);
+    
+    this.controls.update();
+    
+  }
 
   fitCameraTo(boundingBox: THREE.Box3) {
-    const camera:any = this.camera;
+    //const camera:any = this.camera;
     const objPosition = boundingBox.getCenter(new THREE.Vector3());
     const objSize = boundingBox.getSize(new THREE.Vector3());
     boundingBox.min.y = 0;
     boundingBox.max.y = 0;
     const boundingSphere = boundingBox.getBoundingSphere(new THREE.Sphere());
-
+    this.camera.lookAt( objPosition );
+    
     let dim = boundingSphere.radius * 2;
-    if (dim < camera.near) {
-        dim = camera.near;
+    if (dim < this.camera.near) {
+        dim = this.camera.near;
     }
 
     const direction = THREE.Object3D.DefaultUp.clone(); // view direction
 
     // object angular size
-    const fov:any = THREE.MathUtils.degToRad(camera.fov);
+    const fov:any = THREE.MathUtils.degToRad(this.camera.fov);
 
     let distance = dim / (2.0 * Math.tan(fov / 2.0));
 
-    if (camera.aspect <= 1) {
-        distance = distance / camera.aspect;            
+    if (this.camera.aspect <= 1) {
+        distance = distance / this.camera.aspect;            
     }
 
-    if (distance < camera.near) {
+    if (distance < this.camera.near) {
         distance = objSize.y;
     }
 
-    if (distance < camera.near) {
-        distance = camera.near;
+    if (distance < this.camera.near) {
+        distance = this.camera.near;
     }
 
-    camera.position.copy(objPosition.clone().add(direction.multiplyScalar(distance)));
+    this.camera.position.copy(objPosition.clone().add(direction.multiplyScalar(distance)));
 
     if (this.controls) {
       this.controls.target.copy(objPosition); 
      // this.controls.rotateLeft(Math.PI);                        
     } else {
-        camera.lookAt(objPosition);
+        this.camera.lookAt(objPosition);
     }
 
-    camera.updateProjectionMatrix();
+    this.camera.updateProjectionMatrix();
 }
   valuechange(ev:any){
     //console.log('ev',ev)
@@ -905,7 +973,7 @@ this.camera.position.set(centerX, centerY, centerZ);
 
     
 
-
+console.log('this.cursonTrueFalse --->',this.cursonTrueFalse);
       const numSpan = document.createElement("span");
       numSpan.textContent = index.toString();
       // labelDiv.append(numSpan);
@@ -974,149 +1042,11 @@ this.camera.position.set(centerX, centerY, centerZ);
     this.meshHtml.push({tooth,elem});
    
 
-    // this.labelTooth = tooth
-
-    // const lonFudge = Math.PI * 1.5;
-    // const latFudge = Math.PI;
-    // // these helpers will make it easy to position the boxes
-    // // We can rotate the lon helper on its Y axis to the longitude
-    // const lonHelper = new THREE.Object3D();
-    // // We rotate the latHelper on its X axis to the latitude
-    // const latHelper = new THREE.Object3D();
-    // lonHelper.add(latHelper);
-    // // The position helper moves the object to the edge of the sphere
-    // const positionHelper = new THREE.Object3D();
-    // positionHelper.position.z = 1;
-    // latHelper.add(positionHelper);
-
-
-    //      // get the position of the lat/lon
-    //      positionHelper.updateWorldMatrix(true, false);
-    //      this.position = new THREE.Vector3();
-    //      positionHelper.getWorldPosition(this.position);
-
-
-    //tooth.updateWorldMatrix(true, false);
-   // tooth.getWorldPosition(this.tempV);
-
-    // get the normalized screen coordinate of that position
-    // x and y will be in the -1 to +1 range with x = -1 being
-    // on the left and y = -1 being on the bottom
-   // this.tempV.project(this.camera);
-   
-    
-   // this.label2 = new CSS2DObject(this.rootDiv);  
-   //this.label2  = new CSS3DObject( this.rootDiv );
-   // this.label2.position.set(tooth.geometry.boundingSphere.center.x, tooth.geometry.boundingSphere.center.y, tooth.geometry.boundingSphere.center.z);
-    
-    //radius
-   // label2.position.set(tooth.geometry.boundingSphere.center.x, -2 * tooth.geometry.boundingSphere.radius, tooth.geometry.boundingSphere.center.z);
-    
-    //this.label2.visible = true;
-   // label2.rotation.set(tooth.geometry.boundingSphere.center.x, tooth.geometry.boundingSphere.center.y, tooth.geometry.boundingSphere.center.z);
-   
-    //tooth.material.map = label2;
-    //tooth.material.map.needsUpdate = true
-    //tooth.add(this.label2);
-    //  tooth.material.side = THREE.DoubleSide,
-    //  tooth.material.transparent = true,
-    //  tooth.material.opacity= 0.2,
-    //  tooth.material.depthFunc= THREE.LessDepth
-    //tooth.geometry.groups.push(label2)
-    //tooth.material.emissiveMap = label2
-   // label2.layers.set(0);
-    //this.label2.rotation.y = Math.PI * 0.5;
-    //this.label2.scale.set(0.025, 0.025, 1);
-    //label2.rotation.set(tooth.geometry.boundingBox.min.x, tooth.geometry.boundingBox.min.y, tooth.geometry.boundingBox.min.z);
-    
-      //this.camera.position.set(tooth.geometry.boundingBox.min.x, tooth.geometry.boundingBox.min.y, tooth.geometry.boundingBox.min.z);
-    
-
-    //console.log('label2',this.label2);
-    //console.log('tooth label2',tooth)
-
-//     const textureLoader = new TextureLoader();
-
-// // load a texture
-// const texture = textureLoader.load(
-// '../../assets/lipid.png',
-// );
-// tooth.material.map = texture;
-
+  
  }
      
     });
 
-  //  const annotationMarkers: THREE.Sprite[] = []
-//    console.log(this.teeth);
-  //  console.log(this.scene);
-   // this.options = this.teeth
-
-  
-//   //  const annotationsDownload = new XMLHttpRequest()
-//   //  annotationsDownload.open('GET', '/annotations.json')
-//   //  annotationsDownload.onreadystatechange = function () {
-//   //      if (annotationsDownload.readyState === 4) {
-//           // this.annotations = JSON.parse(annotationsDownload.responseText)
-
-//            const annotationsPanel = document.getElementById(
-//                'annotationsPanel'
-//            ) as HTMLDivElement
-//            const ul = document.createElement('ul') as HTMLUListElement
-//            const ulElem = annotationsPanel.appendChild(ul)
-//            Object.keys(this.annotations).forEach((a) => {
-
-//             console.log('a=>',a)
-//             console.log('this.annotations',this.annotations)
-//                const li = document.createElement('li') as HTMLLIElement
-//                const liElem = ulElem.appendChild(li)
-//                const button = document.createElement('button') as HTMLButtonElement
-//                button.innerHTML = a + ' : ' + this.annotations[a].title
-//                button.className = 'annotationButton'
-//                button.addEventListener('click',  ()=> {
-//                    this.gotoAnnotation(this.annotations[a])
-//                })
-//                liElem.appendChild(button)
-
-//                const annotationSpriteMaterial = new THREE.SpriteMaterial({
-//                    map: circleTexture,
-//                    depthTest: false,
-//                    depthWrite: false,
-//                    sizeAttenuation: false,
-//                })
-
-//                console.log('annotationSpriteMaterial',annotationSpriteMaterial)
-//                const annotationSprite = new THREE.Sprite(annotationSpriteMaterial)
-
-
-
-//                annotationSprite.scale.set(0.0015, 0.0015, 0.0015)
-//                annotationSprite.position.copy(this.annotations[a].lookAt)
-//                annotationSprite.userData.id = a
-//                this.scene.add(annotationSprite)
-//                annotationMarkers.push(annotationSprite)
-//                console.log('annotationSprite',annotationSprite)
-
-//                const annotationDiv = document.createElement('div')
-//                annotationDiv.className = 'annotationLabel'
-//                annotationDiv.innerHTML = a
-//                const annotationLabel = new CSS2DObject(annotationDiv)
-//                annotationLabel.position.copy(this.annotations[a].lookAt)
-//               // scene.add(annotationLabel)
-//                this.scene.add( annotationLabel );
-
-//                if (this.annotations[a].description) {
-//                    const annotationDescriptionDiv = document.createElement('div')
-//                    annotationDescriptionDiv.className = 'annotationDescription'
-//                    annotationDescriptionDiv.innerHTML = this.annotations[a].description
-//                    annotationDiv.appendChild(annotationDescriptionDiv)
-//                    this.annotations[a].descriptionDomElement = annotationDescriptionDiv
-//                }
-//            })
-//           // progressBar.style.display = 'none'
-//        //}
-//  //  }
-//   // annotationsDownload.send()
 
    
   }
@@ -1254,17 +1184,30 @@ gotoAnnotation(a: any): any {
   init() {
 
   // const element:any = document.getElementById("canvas");
-    const element:any  = document.querySelector('#jeepObjectId');
-    element.addEventListener(
-     "mousemove",
-     (e:any) => this.onDocumentMouseMove(e),
-     false
-   );
-   element.addEventListener(
-     "click",
-     (e:any) => this.onDocumentMouseDown(),
-     false
-   );
+  //if(this.cursonTrueFalse == false){
+  
+  var element:any = document.querySelector('#jeepObjectId')
+  element.addEventListener(
+   "mousemove",
+   (e:any) =>{
+  
+      this.onDocumentMouseMove(e)
+  
+ 
+  
+  },
+   false
+ );
+ element.addEventListener(
+   "click",
+   (e:any) => {
+ 
+    this.onDocumentMouseDown()
+  },
+   false
+ );
+ // }
+ 
 
 
     // document.addEventListener(
@@ -1280,27 +1223,32 @@ gotoAnnotation(a: any): any {
   }
 
   onDocumentMouseMove(event: any) {
-    event.preventDefault();
+  
+    console.log('onDocumentMouseMove this.cursonTrueFalse',this.cursonTrueFalse);
 
     if(this.cursonTrueFalse == false){
+      event.preventDefault();
+      //console.log('event',event)
       var elementhover:any = document.getElementById("jeepObjectId");
       this.mouse.x = (event.clientX / elementhover.clientWidth) * 2 - 1;
       this.mouse.y = -(event.clientY / elementhover.clientHeight) * 2 + 1;
-    }
-    if(this.cursonTrueFalse == true){
-     // var elementhover:any = document.getElementById("jeepObjectId");
-      // this.mouse.x = (event.clientX / elementhover.clientWidth) * 2 - 1;
-      // this.mouse.y = -(event.clientY / elementhover.clientHeight) * 2 + 1;
-    }
+   }
+   
+
+    // if(this.cursonTrueFalse == true){
+    //  // var elementhover:any = document.getElementById("jeepObjectId");
+    //   // this.mouse.x = (event.clientX / elementhover.clientWidth) * 2 - 1;
+    //   // this.mouse.y = -(event.clientY / elementhover.clientHeight) * 2 + 1;
+    // }
 
   }
 
   onDocumentMouseDown() {
-    if(this.cursonTrueFalse == false){
 
-      
+    console.log('this.cursonTrueFalse',this.cursonTrueFalse);
+
+    if(this.cursonTrueFalse == false){
     this.filteredData.forEach((element:any) => {
-     
       // element.material = this.selectedToothMaterial
        element.material.emissive.setHex(0);
  
@@ -1379,9 +1327,93 @@ gotoAnnotation(a: any): any {
       
     
     }
-    if(this.cursonTrueFalse == true){
+  
+  }
+  onDocumentMouseDownFocusObject() {
 
-    }
+    console.log('this.cursonTrueFalse',this.cursonTrueFalse);
+
+   // if(this.cursonTrueFalse == false){
+    this.filteredData.forEach((element:any) => {
+      // element.material = this.selectedToothMaterial
+       element.material.emissive.setHex(0);
+ 
+     })
+ 
+     this.teeth.forEach((objdata:any,index:any) => {
+       objdata.material = this.backupdata[index].material;
+       
+     });
+ 
+     if (this.selectedTooth !== this.highlightedTooth) {
+       // this.selectedTooth && (this.selectedTooth.material = this.toothMaterial);
+       if (this.selectedTooth) {
+         var myData = this.backupdata.filter((data: any) => {
+           return data.name == this.selectedTooth.name;
+         });
+ 
+         //console.log('mouse click backup mydata',myData[0])
+         //this.selectedTooth.material = myData[0].material;
+        // myData[0].material.emissive.getHex()
+        this.selectedTooth.material.emissive.setHex(0); 
+          
+    
+       }
+ 
+       
+       this.selectedTooth = this.highlightedTooth;
+       this.selectedTooth &&
+         (this.selectedTooth.material.emissive.setHex(0x66a3ff))  //; = this.selectedToothMaterial);
+       //  this.selectedTooth.material.emissiveIntensity = 0.5;
+ 
+         this.currentToothObj =  this.selectedTooth
+         this.currentObjDetail = this.selectedTooth
+         // currentTooth.material.color.set( Math.random() * 0xffffff );
+          //console.log('currentTooth->',this.currentToothObj);
+          this.scene.children.forEach((sobj:any)=>{
+            if(sobj.type == 'BoxHelper'){
+      
+              sobj.visible = false
+            }
+          });
+    
+          
+          var box = new THREE.BoxHelper( this.currentToothObj );
+          this.scene.add( box );
+          this.tree.treeControl.expandAll();
+    
+        //  console.log( this.currentToothObj.id)
+         // console.log('this.treeControl',this.treeControl)
+    
+          this.treeControl.dataNodes.forEach((element:any)=>{
+            if(element.id == this.currentToothObj.id){
+              element.isHighlight = true;
+    
+            }else{
+              element.isHighlight = false;
+            }
+          })
+    
+          //console.log('this.treeFlattener',this.treeFlattener)
+    
+          //console.log('data sourse',this.dataSource)
+    
+ 
+ 
+ 
+     } else {
+       this.selectedTooth &&
+         (this.selectedTooth.material.emissive.setHex(0x66a3ff));
+        // this.selectedTooth.material.emissiveIntensity = 0.5;
+         // this.selectedTooth &&
+         // (this.selectedTooth.material = this.highlightedToothMaterial);
+       this.selectedTooth = null;
+     }
+ 
+      
+    
+    //}
+  
   }
 
 
@@ -1461,6 +1493,7 @@ gotoAnnotation(a: any): any {
   animate(): void {
     window.requestAnimationFrame(() => this.animate());
     this.controls.update();
+   
     this.update();
     this.renderer.render(this.scene, this.camera);
     this.labelRenderer.render(this.scene, this.camera);
@@ -1491,6 +1524,7 @@ gotoAnnotation(a: any): any {
 
     this.raycaster.setFromCamera(this.mouse, this.camera);
    // this.raycaster.setFromCamera(this.tempV, this.camera);
+  
 
     const intersects = this.raycaster.intersectObjects(this.teeth);
 
@@ -1583,102 +1617,104 @@ gotoAnnotation(a: any): any {
     if (intersects.length) {
       currentTooth = intersects[0].object as THREE.Mesh;
     }
-    if (this.highlightedTooth !== currentTooth) {
-      if (this.highlightedTooth) {
-        if (this.selectedTooth !== this.highlightedTooth) {
-
-          var myData = this.backupdata.filter((data: any) => {
-            return data.name == this.highlightedTooth.name;
-          });
-          //console.log('this.backupdata ====>',this.backupdata)
-          //console.log('myData[0] ====>',myData[0])
-          //console.log('this.highlightedTooth=>',this.highlightedTooth)
-          // if(myData.length>0){
-          // var meshStandardMaterial = myData[0].materials[0] as THREE.MeshStandardMaterial;
-          // this.highlightedTooth.material = meshStandardMaterial
-          // }
-       // this.highlightedTooth.material = myData[0].material;
-          //this.highlightedTooth.material.emissive.setHex(myData[0].material.emissive.getHex()); //.material.color.getHex()
-           this.highlightedTooth.material.emissive.setHex(0);
-          // this.highlightedTooth.material = this.toothMaterial;
-
-          this.annotationDetail.classList.remove("annotation");
-          this.objid.textContent = ""
-          this.objname.textContent =""
+    if(this.cursonTrueFalse == false){
+      if (this.highlightedTooth !== currentTooth) {
+        if (this.highlightedTooth) {
+          if (this.selectedTooth !== this.highlightedTooth) {
+  
+            var myData = this.backupdata.filter((data: any) => {
+              return data.name == this.highlightedTooth.name;
+            });
+            //console.log('this.backupdata ====>',this.backupdata)
+            //console.log('myData[0] ====>',myData[0])
+            //console.log('this.highlightedTooth=>',this.highlightedTooth)
+            // if(myData.length>0){
+            // var meshStandardMaterial = myData[0].materials[0] as THREE.MeshStandardMaterial;
+            // this.highlightedTooth.material = meshStandardMaterial
+            // }
+         // this.highlightedTooth.material = myData[0].material;
+            //this.highlightedTooth.material.emissive.setHex(myData[0].material.emissive.getHex()); //.material.color.getHex()
+             this.highlightedTooth.material.emissive.setHex(0);
+            // this.highlightedTooth.material = this.toothMaterial;
+  
+            this.annotationDetail.classList.remove("annotation");
+            this.objid.textContent = ""
+            this.objname.textContent =""
+          }
+          if (this.highlightedTooth.children.length > 0) {
+  
+         
+  
+            this.highlightedTooth.children[0]["visible"] = false;
+           // this.outlinePass.selectedObjects = [];
+           //this.label2.visible = false;  
+          }
         }
-        if (this.highlightedTooth.children.length > 0) {
-
-       
-
-          this.highlightedTooth.children[0]["visible"] = false;
-         // this.outlinePass.selectedObjects = [];
-         //this.label2.visible = false;  
-        }
-      }
-      this.highlightedTooth = currentTooth;
-      if (this.highlightedTooth) {
-        if (this.selectedTooth !== this.highlightedTooth) {
-
-          
-          // var myData = this.backupdata.filter((data:any) => {
-          //   return data.name == this.highlightedTooth.name;
-          // });
-          // if(myData.length>0){
-          //   var meshStandardMaterial = myData[0].materials[0] as THREE.MeshStandardMaterial;
-          //   this.highlightedTooth.material = meshStandardMaterial;
-          // }
-          // this.highlightedTooth.material = myData[0].material;
-          //
-
-          //
-
-         // this.highlightedTooth.material = this.highlightedToothMaterial;
-
-          this.highlightedTooth.material.emissive.setHex(0xff99cc);
-         // this.highlightedTooth.material.emissiveIntensity = 0.5;
-
-          this.addSelectedObject( this.highlightedTooth );
-					this.outlinePass.selectedObjects = this.selectedObjects 
-        // this.outlinePass.selectedObjects.push( this.highlightedTooth)
-         //this.outlinePass.selectedObjects =[this.highlightedTooth];
-           // console.log(this.selectedObjects)
-           // console.log('this.outlinePass',this.outlinePass)
-
-
-        }
-        if (this.highlightedTooth.children.length > 0) {
-          this.highlightedTooth.children[0].visible = true;
-          
-
-          // const p = intersects[0].point
-
-          // new TWEEN.Tween(this.controls.target)
-          //     .to(
-          //         {
-          //             x: p.x,
-          //             y: p.y,
-          //             z: p.z,
-          //         },
-          //         500
-          //     )
-          //     .easing(TWEEN.Easing.Cubic.Out)
-           //   .start()
+        this.highlightedTooth = currentTooth;
+        if (this.highlightedTooth) {
+          if (this.selectedTooth !== this.highlightedTooth) {
+  
+            
+            // var myData = this.backupdata.filter((data:any) => {
+            //   return data.name == this.highlightedTooth.name;
+            // });
+            // if(myData.length>0){
+            //   var meshStandardMaterial = myData[0].materials[0] as THREE.MeshStandardMaterial;
+            //   this.highlightedTooth.material = meshStandardMaterial;
+            // }
+            // this.highlightedTooth.material = myData[0].material;
+            //
+  
+            //
+  
+           // this.highlightedTooth.material = this.highlightedToothMaterial;
+  
+            this.highlightedTooth.material.emissive.setHex(0xff99cc);
+           // this.highlightedTooth.material.emissiveIntensity = 0.5;
+  
+            this.addSelectedObject( this.highlightedTooth );
+            this.outlinePass.selectedObjects = this.selectedObjects 
+          // this.outlinePass.selectedObjects.push( this.highlightedTooth)
+           //this.outlinePass.selectedObjects =[this.highlightedTooth];
+             // console.log(this.selectedObjects)
+             // console.log('this.outlinePass',this.outlinePass)
+  
+  
+          }
+          if (this.highlightedTooth.children.length > 0) {
+            this.highlightedTooth.children[0].visible = true;
+            
+  
+            // const p = intersects[0].point
+  
+            // new TWEEN.Tween(this.controls.target)
+            //     .to(
+            //         {
+            //             x: p.x,
+            //             y: p.y,
+            //             z: p.z,
+            //         },
+            //         500
+            //     )
+            //     .easing(TWEEN.Easing.Cubic.Out)
+             //   .start()
+          }
         }
       }
     }
+ 
   }
 
   colorCovert(a:any,b:any,c:any){
    // var c = new THREE.Color(); // create once and reuse
     var color =  new THREE.Color( a, b, c );
 //c.set( 12615680 );
-console.log('color.getHexString()',color.getHexString())
+//console.log('color.getHexString()',color.getHexString())
  return color.getHexString();
 
   }
   focusObject(clickObj:any){
-   // this.colorCovert(1,0.6,1);
-   // console.log(clickObj);
+ 
     this.activeNode = clickObj
 
     this.teeth.forEach((objdata:any,index:any) => {
@@ -1706,6 +1742,7 @@ console.log('color.getHexString()',color.getHexString())
 
  var box = new THREE.BoxHelper(  this.teeth[findIndex] );
  console.log(' this.teeth[findIndex] ', this.teeth[findIndex] )
+
  //var  currentTeeth =this.teeth[findIndex]
  //this.teeth[findIndex].material.emissive.setHex(0xff99c2);
  //this.teeth[findIndex].material.color.setHex( 0xff99c2 )
@@ -1720,8 +1757,10 @@ console.log('color.getHexString()',color.getHexString())
 //boundingBox
 //this.fitCameraTo(this.teeth[findIndex].geometry.boundingBox)
  //this.camera.position.set(-4, -4, -5);
-//  var boxe:any = new THREE.Box3().setFromObject(this.teeth[findIndex]);
-// boxe.center(this.teeth[findIndex].position);
+ var boxe:any = new THREE.Box3().setFromObject(this.teeth[findIndex]);
+//boxe.center(this.teeth[findIndex].position);
+//this.fitCameraTo(boxe)
+this.zoomCameraToSelection(boxe);
 // this.teeth[findIndex].localToWorld(boxe);
 // this.teeth[findIndex].position.multiplyScalar(-1);
 
@@ -1773,8 +1812,8 @@ this.currentObjDetail = this.teeth[findIndex]
   })
   this.highlightedTooth  = this.teeth[findIndex] 
  // this.highlightedTooth.material.emissive.setHex(0x0ff00);
-  this.onDocumentMouseDown();
-
+ // this.onDocumentMouseDown();
+this.onDocumentMouseDownFocusObject();
   //this.teeth[findIndex].visible = false
 
   	//box.applyMatrix4( found.matrix );

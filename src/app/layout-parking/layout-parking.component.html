@@ -12,15 +12,17 @@
                             <as-split-area [size]="x1" [minSize]="minSize1">
                 
                                 <div id="jeepObjectId" style="height: 100%;width: 100%;display: block;" >
+                                   
                                     <canvas #canvas  id="canvas" style="height: 100%;width: 100%;display: block;"></canvas>
-                                </div>
-                                <div class="hand_cursor" (click)="enableMouseControl()">
+                                    <div class="hand_cursor" (click)="enableMouseControl()">
                                     
-                                    <mat-icon *ngIf="cursonTrueFalse == false" class="color-blue" style="font-size: 30px;color:rgb(213, 50, 148);cursor: pointer;">touch_app</mat-icon>
-                               
-                               <mat-icon *ngIf="cursonTrueFalse == true" class="color-blue" style="font-size: 30px;color:rgb(213, 50, 148);cursor: pointer;">mouse</mat-icon>
-                              
+                                        <mat-icon *ngIf="cursonTrueFalse == false" class="color-blue" style="font-size: 30px;color:rgb(213, 50, 148);cursor: pointer;">touch_app</mat-icon>
+                                        
+                                        <mat-icon *ngIf="cursonTrueFalse == true" class="color-blue" style="font-size: 30px;color:rgb(213, 50, 148);cursor: pointer;">ads_click</mat-icon>
+                                       
+                                         </div>
                                 </div>
+                               
 
                                 <div id="annotationsPanel"></div>
 
