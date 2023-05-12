@@ -338,7 +338,7 @@ annotations: any = [
 
      
     // // this.controls.autoRotate = true;
-
+  
     this.controls.enableZoom = true;
     this.controls.enableDamping = false;
    // this.controls.enableRotate = false;
@@ -460,6 +460,7 @@ annotations: any = [
      this.camera.position.x = 100;
      this.camera.position.y = 100;
      this.camera.position.z = 100;
+   
      this.ambientLight = new THREE.AmbientLight(0x00000, 100);
      this.scene.add(this.ambientLight);
      this.directionalLight = new THREE.DirectionalLight(0xffdf04, 0.4);
@@ -637,8 +638,9 @@ annotations: any = [
     this.camera.updateProjectionMatrix();
   
     this.camera.position.copy( this.controls.target ).sub(direction);
-    
+  
     this.controls.update();
+   
     
   }
 
@@ -756,12 +758,15 @@ annotations: any = [
     // //var position = { x: centerX, y: centerY, z: centerZ };
     // this.camera.position.set(centerX, centerY, centerZ);
 
-    
-var centerX = this.teeth[findIndex].geometry.boundingBox.min.x;
-var centerY = this.teeth[findIndex].geometry.boundingBox.min.y;
-var centerZ = this.teeth[findIndex].geometry.boundingBox.min.z;
+    var boxe:any = new THREE.Box3().setFromObject(this.teeth[findIndex]);
+    //boxe.center(this.teeth[findIndex].position);
+    //this.fitCameraTo(boxe)
+    this.zoomCameraToSelection(boxe);
+// var centerX = this.teeth[findIndex].geometry.boundingBox.min.x;
+// var centerY = this.teeth[findIndex].geometry.boundingBox.min.y;
+// var centerZ = this.teeth[findIndex].geometry.boundingBox.min.z;
 
-this.camera.position.set(centerX, centerY, centerZ);
+// this.camera.position.set(centerX, centerY, centerZ);
   
   
   }else{

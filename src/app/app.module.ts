@@ -26,7 +26,8 @@ import { MeterialModule } from './meterial/meterial.module';
     MeterialModule,
     BrowserModule,
     AppRoutingModule,
-    BrowserAnimationsModule
+    BrowserAnimationsModule,
+    
   ],
   providers: [],
   bootstrap: [AppComponent]
